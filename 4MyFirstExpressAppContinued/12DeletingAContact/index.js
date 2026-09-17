@@ -1,63 +1,47 @@
-const path = require('path');
+const path = require('node:path');
 const express = require('express');
-const exp = require('constants');
-const port=8000;
 
-const app=express();
-
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// app.use(express.urlencoded()); //middleware
-app.use(express.static('assets'));
-
-var contactList=[
-    {
-        name: "Arpan",
-        phone: "1234567890"
-    },
-    {
-        name: "SRK",
-        phone: "0987654321"
-    },
-    {
-        name: "Laraib",
-        phone: "5647839210"
-    }
-]
-
-app.get('/', function(req,res){
-    // console.log("From the get route controller", req.myName);
-    return res.render('home', {
-        title: "My Contact Lists",
-        contact_List: contactList
+// A runnable final lesson; earlier lesson snapshots are preserved unchanged.
+function createApp() {
+    const app = express();
+    const contacts = [
+        { name: 'Arpan', phone: '1234567890' },
+        { name: 'SRK', phone: '0987654321' },
+        { name: 'Laraib', phone: '5647839210' }
+    ];
+    app.set('view engine', 'ejs');
+    app.set('views', path.join(__dirname, 'views'));
+    app.use(express.urlencoded({ extended: false, limit: '16kb' }));
+    app.use(express.static(path.join(__dirname, 'assets')));
+    app.get('/', (_req, res) => res.render('home', { title: 'My Contact Lists', contact_List: contacts }));
+    app.get('/practice', (_req, res) => res.render('practice', { title: 'Playground is Up!' }));
+    app.post('/create-contact', (req, res) => {
+        const { name, phone: rawPhone } = req.body;
+        const phone = typeof rawPhone === 'string' ? rawPhone.trim() : '';
+        const digitCount = phone.replace(/[^0-9]/g, '').length;
+        if (typeof name !== 'string' || !name.trim() || name.trim().length > 100 ||
+            !/^\+?[0-9 -]{3,30}$/.test(phone) || digitCount < 3 || digitCount > 15) {
+            return res.status(400).send('Provide a name and a valid phone number.');
+        }
+        if (contacts.some(contact => contact.phone === phone.trim())) {
+            return res.status(409).send('That phone number already exists.');
+        }
+        contacts.push({ name: name.trim(), phone: phone.trim() });
+        return res.redirect(303, '/');
     });
-});
+    app.post('/delete-contact', (req, res) => {
+        const phone = req.body.phone;
+        if (typeof phone !== 'string') return res.status(400).send('Provide a phone number.');
+        const index = contacts.findIndex(contact => contact.phone === phone);
+        if (index === -1) return res.status(404).send('Contact not found.');
+        contacts.splice(index, 1);
+        return res.redirect(303, '/');
+    });
+    return app;
+}
 
-app.get('/practice', function(req, res){
-    return res.render('practice', {title: "Playground is Up!"});
-});
-
-app.post('/create-contact', function(req, res){
-    contactList.push(req.body);
-    // return res.redirect('/');
-    return res.redirect('back');
-});
-
-app.get('/delete-contact/', function(req,res){
-    console.log(req.query);
-    let phone = req.query.phone;
-    
-    let contactIndex = contactList.findIndex(contact => contact.phone == phone);
-    if(contactIndex != -1){
-        contactList.splice(contactIndex,  )
-    }
-
-});
-
-app.listen(port, function(err){
-    if (err){
-        console.log('Error in running the server', err);
-    }
-    console.log('Yup! my server is running on Port:', port);
-});
+if (require.main === module) {
+    const port = Number(process.env.PORT || 8000);
+    createApp().listen(port, '127.0.0.1', () => console.log(`Contacts lesson: http://127.0.0.1:${port}`));
+}
+module.exports = { createApp };
