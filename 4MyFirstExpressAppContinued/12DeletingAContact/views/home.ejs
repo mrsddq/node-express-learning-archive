@@ -18,9 +18,10 @@
                         <p><%= i.phone %></p>
                     </div>
                     <div class="delete-button">
-                        <a href="/delete-contact/?phone=<%= i.phone %>">
-                            <i class="fas fa-window-close"></i>
-                        </a>
+                        <form action="/delete-contact" method="post">
+                            <input type="hidden" name="phone" value="<%= i.phone %>">
+                            <button type="submit" aria-label="Delete <%= i.name %>">Delete</button>
+                        </form>
                     </div>
                 </li>
             <% } %>

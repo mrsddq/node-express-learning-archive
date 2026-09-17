@@ -1,11 +1,12 @@
 {
   "name": "node-express-learning-archive",
   "version": "1.0.0",
-  "description": "",
+  "description": "Historical Node/Express lessons with a tested, local-only final contacts example",
   "main": "index.js",
   "scripts": {
     "start": "node 4MyFirstExpressAppContinued/12DeletingAContact/index.js",
-    "smoke": "node --check 4MyFirstExpressAppContinued/12DeletingAContact/index.js"
+    "smoke": "node --check 4MyFirstExpressAppContinued/12DeletingAContact/index.js",
+    "test": "node --test tests/*.test.js"
   },
   "repository": {
     "type": "git",
