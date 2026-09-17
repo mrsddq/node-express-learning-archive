@@ -16,9 +16,11 @@ function createApp() {
     app.get('/', (_req, res) => res.render('home', { title: 'My Contact Lists', contact_List: contacts }));
     app.get('/practice', (_req, res) => res.render('practice', { title: 'Playground is Up!' }));
     app.post('/create-contact', (req, res) => {
-        const { name, phone } = req.body;
+        const { name, phone: rawPhone } = req.body;
+        const phone = typeof rawPhone === 'string' ? rawPhone.trim() : '';
+        const digitCount = phone.replace(/[^0-9]/g, '').length;
         if (typeof name !== 'string' || !name.trim() || name.trim().length > 100 ||
-            typeof phone !== 'string' || !/^\+?[0-9 -]{3,30}$/.test(phone)) {
+            !/^\+?[0-9 -]{3,30}$/.test(phone) || digitCount < 3 || digitCount > 15) {
             return res.status(400).send('Provide a name and a valid phone number.');
         }
         if (contacts.some(contact => contact.phone === phone.trim())) {

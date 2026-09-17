@@ -57,3 +57,14 @@ test('names are escaped in the rendered page', async t => {
     assert.match(html, /&lt;script&gt;/);
     assert.doesNotMatch(html, /<script>alert/);
 });
+
+test('phones require 3 to 15 digits; rejected input does not alter the list', async t => {
+    const request = await fixture(t);
+    const before = await (await request('/')).text();
+    for (const phone of ['   ', '---', '+ --', '12', '1'.repeat(16)]) {
+        assert.equal((await request('/create-contact', { name: 'Invalid', phone })).status, 400);
+        assert.equal(await (await request('/')).text(), before);
+    }
+    assert.equal((await request('/create-contact', { name: 'Formatted', phone: ' +44 123-456 ' })).status, 303);
+    assert.match(await (await request('/')).text(), /\+44 123-456/);
+});
